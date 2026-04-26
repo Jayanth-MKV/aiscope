@@ -1,0 +1,3 @@
+- Don't use camelCase, prefer snake_case.
+- Avoid `var`; always use `const` or `let`.
+- Never throw raw exceptions, prefer Result-types.

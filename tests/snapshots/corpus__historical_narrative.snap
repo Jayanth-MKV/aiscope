@@ -1,0 +1,31 @@
+---
+source: tests/corpus.rs
+expression: out
+---
+{
+  "fixture": "historical_narrative",
+  "statements": [
+    {
+      "source_index": 0,
+      "text": "The npm registry is reliable for downloads.",
+      "byte_start": 0,
+      "byte_end": 47,
+      "line": 1
+    },
+    {
+      "source_index": 0,
+      "text": "Our build infrastructure spans yarn workspaces and pnpm filters historically.",
+      "byte_start": 47,
+      "byte_end": 128,
+      "line": 2
+    },
+    {
+      "source_index": 0,
+      "text": "We migrated from npm to pnpm last year for the monorepo.",
+      "byte_start": 128,
+      "byte_end": 188,
+      "line": 3
+    }
+  ],
+  "assertions": []
+}

@@ -1,0 +1,71 @@
+---
+source: tests/corpus.rs
+expression: out
+---
+{
+  "fixture": "multi_axis",
+  "statements": [
+    {
+      "source_index": 0,
+      "text": "Use 2 spaces for indentation, never tabs.",
+      "byte_start": 0,
+      "byte_end": 45,
+      "line": 1
+    },
+    {
+      "source_index": 0,
+      "text": "Heavy commenting is required on public APIs.",
+      "byte_start": 45,
+      "byte_end": 93,
+      "line": 2
+    },
+    {
+      "source_index": 0,
+      "text": "Default-import React from 'react' (legacy convention).",
+      "byte_start": 93,
+      "byte_end": 151,
+      "line": 3
+    }
+  ],
+  "assertions": [
+    {
+      "statement_index": 0,
+      "axis": {
+        "kind": "indentation"
+      },
+      "value": {
+        "v": "spaces2"
+      },
+      "polarity": "prefer",
+      "condition": null,
+      "confidence": 0.95,
+      "origin": "pattern"
+    },
+    {
+      "statement_index": 0,
+      "axis": {
+        "kind": "indentation"
+      },
+      "value": {
+        "v": "tabs"
+      },
+      "polarity": "forbid",
+      "condition": null,
+      "confidence": 0.95,
+      "origin": "pattern"
+    },
+    {
+      "statement_index": 1,
+      "axis": {
+        "kind": "comment_density"
+      },
+      "value": {
+        "v": "heavy"
+      },
+      "polarity": "prefer",
+      "condition": null,
+      "confidence": 0.88,
+      "origin": "pattern"
+    }
+  ]
+}

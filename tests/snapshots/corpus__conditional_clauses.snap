@@ -1,0 +1,77 @@
+---
+source: tests/corpus.rs
+expression: out
+---
+{
+  "fixture": "conditional_clauses",
+  "statements": [
+    {
+      "source_index": 0,
+      "text": "Use snake_case for variables in legacy code.",
+      "byte_start": 17,
+      "byte_end": 65,
+      "line": 3
+    },
+    {
+      "source_index": 0,
+      "text": "Use camelCase for variables in new code.",
+      "byte_start": 65,
+      "byte_end": 109,
+      "line": 4
+    },
+    {
+      "source_index": 0,
+      "text": "Prefer single quotes for strings, but use backticks for templates.",
+      "byte_start": 109,
+      "byte_end": 179,
+      "line": 5
+    }
+  ],
+  "assertions": [
+    {
+      "statement_index": 0,
+      "axis": {
+        "kind": "naming",
+        "scope": "variables"
+      },
+      "value": {
+        "v": "snake_case"
+      },
+      "polarity": "prefer",
+      "condition": {
+        "raw": "in legacy code"
+      },
+      "confidence": 0.97,
+      "origin": "pattern"
+    },
+    {
+      "statement_index": 1,
+      "axis": {
+        "kind": "naming",
+        "scope": "variables"
+      },
+      "value": {
+        "v": "camel_case"
+      },
+      "polarity": "prefer",
+      "condition": {
+        "raw": "in new code"
+      },
+      "confidence": 0.97,
+      "origin": "pattern"
+    },
+    {
+      "statement_index": 2,
+      "axis": {
+        "kind": "quote_style"
+      },
+      "value": {
+        "v": "single_quote"
+      },
+      "polarity": "prefer",
+      "condition": null,
+      "confidence": 0.96,
+      "origin": "pattern"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+/target
+**/*.rs.bk
+Cargo.lock
+.DS_Store
+.idea/
+.vscode/
+*.png
+!docs/*.png
+!aiscope-demo.png
+tmp-demo/

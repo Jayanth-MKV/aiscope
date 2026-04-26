@@ -1,0 +1,87 @@
+[package]
+name = "aiscope"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["aiscope contributors"]
+license = "MIT"
+description = "DevTools for your AI coding tools' memory. See what Cursor, Claude Code, and Copilot actually remember about your project — and where they disagree."
+repository = "https://github.com/Jayanth-MKV/aiscope"
+homepage = "https://aiscope.dev"
+documentation = "https://docs.rs/aiscope"
+readme = "README.md"
+keywords = ["ai", "cursor", "claude", "copilot", "devtools"]
+categories = ["command-line-utilities", "development-tools"]
+
+[features]
+# Default = deterministic core only (~5MB, instant, no network).
+# `semantic` adds embedding + cross-encoder stages for paraphrase detection.
+# Models download to ~/.cache/aiscope/ on first use.
+default = []
+semantic = ["dep:fastembed", "dep:ort"]
+lite = []
+
+[dependencies]
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# File I/O
+walkdir = "2"
+ignore = "0.4"
+directories = "5"
+notify = "6"
+
+# Error & logging
+anyhow = "1"
+thiserror = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# TUI
+ratatui = "0.29"
+crossterm = "0.28"
+
+# Compiler-grade diagnostics
+miette = { version = "7", features = ["fancy-no-backtrace"] }
+
+# Markdown AST
+pulldown-cmark = { version = "0.12", default-features = false }
+
+# Deterministic NLP
+regex = "1"
+unicode-normalization = "0.1"
+caseless = "0.2"
+rust-stemmers = "1"
+
+# Tokens & hashing
+tiktoken-rs = "0.6"
+sha2 = "0.10"
+
+# Rendering (PNG card)
+tiny-skia = "0.11"
+cosmic-text = "0.12"
+
+# Semantic layer (optional, downloads models on first run)
+fastembed = { version = "4", optional = true, default-features = false, features = [
+    "ort-download-binaries",
+] }
+ort = { version = "2.0.0-rc.9", optional = true, default-features = false, features = [
+    "download-binaries",
+    "ndarray",
+] }
+
+[dev-dependencies]
+insta = { version = "1", features = ["json"] }
+tempfile = "3"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+strip = true
+opt-level = 3
+panic = "abort"

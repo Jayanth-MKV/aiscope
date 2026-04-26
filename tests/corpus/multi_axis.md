@@ -1,0 +1,3 @@
+- Use 2 spaces for indentation, never tabs.
+- Heavy commenting is required on public APIs.
+- Default-import React from 'react' (legacy convention).

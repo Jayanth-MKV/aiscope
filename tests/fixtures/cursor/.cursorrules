@@ -1,0 +1,3 @@
+- Use camelCase for variables.
+- Always use double quotes for strings.
+- Co-locate tests as \*.test.ts beside the file under test.

@@ -1,0 +1,117 @@
+---
+source: tests/corpus.rs
+expression: out
+---
+{
+  "fixture": "frontmatter_and_code",
+  "statements": [
+    {
+      "source_index": 0,
+      "text": "Always use async/ await over .then() promise chains.",
+      "byte_start": 54,
+      "byte_end": 115,
+      "line": 7
+    },
+    {
+      "source_index": 0,
+      "text": "Prefer pnpm for installing dependencies.",
+      "byte_start": 115,
+      "byte_end": 161,
+      "line": 8
+    },
+    {
+      "source_index": 0,
+      "text": "Co-locate tests as *.test.ts beside the file under test.",
+      "byte_start": 161,
+      "byte_end": 225,
+      "line": 9
+    },
+    {
+      "source_index": 0,
+      "text": "Standalone paragraph: enable strict TypeScript.",
+      "byte_start": 380,
+      "byte_end": 429,
+      "line": 18
+    }
+  ],
+  "assertions": [
+    {
+      "statement_index": 0,
+      "axis": {
+        "kind": "async_style"
+      },
+      "value": {
+        "v": "async_await"
+      },
+      "polarity": "prefer",
+      "condition": null,
+      "confidence": 0.94,
+      "origin": "pattern"
+    },
+    {
+      "statement_index": 0,
+      "axis": {
+        "kind": "async_style"
+      },
+      "value": {
+        "v": "promise_chain"
+      },
+      "polarity": "prefer",
+      "condition": null,
+      "confidence": 0.93,
+      "origin": "pattern"
+    },
+    {
+      "statement_index": 1,
+      "axis": {
+        "kind": "package_manager"
+      },
+      "value": {
+        "v": "pnpm"
+      },
+      "polarity": "prefer",
+      "condition": null,
+      "confidence": 0.93,
+      "origin": "pattern"
+    },
+    {
+      "statement_index": 2,
+      "axis": {
+        "kind": "test_colocation"
+      },
+      "value": {
+        "v": "beside_source"
+      },
+      "polarity": "prefer",
+      "condition": null,
+      "confidence": 0.95,
+      "origin": "pattern"
+    },
+    {
+      "statement_index": 2,
+      "axis": {
+        "kind": "test_colocation"
+      },
+      "value": {
+        "v": "beside_source"
+      },
+      "polarity": "prefer",
+      "condition": null,
+      "confidence": 0.95,
+      "origin": "pattern"
+    },
+    {
+      "statement_index": 3,
+      "axis": {
+        "kind": "type_strictness"
+      },
+      "value": {
+        "v": "strict"
+      },
+      "polarity": "prefer",
+      "condition": null,
+      "confidence": 0.92,
+      "origin": "pattern"
+    }
+  ]
+}

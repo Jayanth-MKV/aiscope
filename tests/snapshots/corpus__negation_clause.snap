@@ -1,0 +1,73 @@
+---
+source: tests/corpus.rs
+expression: out
+---
+{
+  "fixture": "negation_clause",
+  "statements": [
+    {
+      "source_index": 0,
+      "text": "Don't use camelCase, prefer snake_case.",
+      "byte_start": 0,
+      "byte_end": 43,
+      "line": 1
+    },
+    {
+      "source_index": 0,
+      "text": "Avoid var; always use const or let.",
+      "byte_start": 43,
+      "byte_end": 88,
+      "line": 2
+    },
+    {
+      "source_index": 0,
+      "text": "Never throw raw exceptions, prefer Result-types.",
+      "byte_start": 88,
+      "byte_end": 140,
+      "line": 3
+    }
+  ],
+  "assertions": [
+    {
+      "statement_index": 0,
+      "axis": {
+        "kind": "naming",
+        "scope": "any"
+      },
+      "value": {
+        "v": "camel_case"
+      },
+      "polarity": "forbid",
+      "condition": null,
+      "confidence": 0.97,
+      "origin": "pattern"
+    },
+    {
+      "statement_index": 0,
+      "axis": {
+        "kind": "naming",
+        "scope": "any"
+      },
+      "value": {
+        "v": "snake_case"
+      },
+      "polarity": "prefer",
+      "condition": null,
+      "confidence": 0.97,
+      "origin": "pattern"
+    },
+    {
+      "statement_index": 2,
+      "axis": {
+        "kind": "error_handling"
+      },
+      "value": {
+        "v": "throw"
+      },
+      "polarity": "forbid",
+      "condition": null,
+      "confidence": 0.9,
+      "origin": "pattern"
+    }
+  ]
+}

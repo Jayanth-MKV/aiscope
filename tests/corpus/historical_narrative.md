@@ -1,0 +1,3 @@
+- The npm registry is reliable for downloads.
+- Our build infrastructure spans yarn workspaces and pnpm filters historically.
+- We migrated from npm to pnpm last year for the monorepo.
