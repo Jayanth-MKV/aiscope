@@ -35,6 +35,7 @@ walkdir = "2"
 ignore = "0.4"
 directories = "5"
 notify = "6"
+globset = "0.4"
 
 # Error & logging
 anyhow = "1"

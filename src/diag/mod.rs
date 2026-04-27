@@ -96,7 +96,7 @@ fn build_diagnostic(
     named: &[Option<Arc<NamedSource<String>>>],
 ) -> AiscopeDiagnostic {
     let (left_idx, right_idx) = match conf.kind {
-        ConflictKind::Duplicate => (conf.left, conf.right),
+        ConflictKind::Duplicate | ConflictKind::AgentToolMismatch => (conf.left, conf.right),
         ConflictKind::Clash | ConflictKind::PolarityConflict => {
             // For Clash/PolarityConflict, conf.left/right index assertions.
             // Resolve to underlying statements.
@@ -154,6 +154,11 @@ fn build_diagnostic(
                 r_stmt.line,
                 truncate(&r_stmt.text, 80)
             )),
+        ),
+        ConflictKind::AgentToolMismatch => (
+            "aiscope::agent_tool",
+            format!("agent tool mismatch: {}", conf.note),
+            Some("add the tool to the agent's `tools:` allowlist, or change the instruction".to_string()),
         ),
     };
 

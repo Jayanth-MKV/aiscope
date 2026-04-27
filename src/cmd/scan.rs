@@ -1,5 +1,6 @@
 //! Default scan command (no subcommand).
 
+use super::PipelineOptions;
 use crate::{diag, render};
 use anyhow::Result;
 use std::path::{Path, PathBuf};
@@ -10,12 +11,12 @@ pub struct ScanOptions {
     pub json: bool,
     pub card: Option<PathBuf>,
     pub grep: Option<String>,
-    /// Render conflicts in compiler-grade `miette` style.
     pub diag: bool,
+    pub pipeline: PipelineOptions,
 }
 
 pub fn run(path: &Path, opts: &ScanOptions) -> Result<()> {
-    let mut bundle = super::build_bundle(path);
+    let mut bundle = super::build_bundle(path, opts.pipeline);
 
     if let Some(pat) = &opts.grep {
         let needle = pat.to_lowercase();

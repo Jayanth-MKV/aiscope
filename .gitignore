@@ -1,10 +1,84 @@
-/target
+# ─────────────────────────────────────────────────────────────────────
+# aiscope .gitignore
+#
+# Industry-standard ignores for a Rust **binary** crate published as OSS.
+# Notes:
+#   - `Cargo.lock` IS committed (this is a binary, not a library).
+#   - `aiscope-demo.png` IS committed (it's the README hero image).
+#   - Anything personal / machine-local / secret must stay local.
+# ─────────────────────────────────────────────────────────────────────
+
+# Rust build output
+/target/
 **/*.rs.bk
-Cargo.lock
-.DS_Store
-.idea/
+*.pdb
+
+# Cargo
+# (Cargo.lock IS committed for binary crates — do NOT ignore it.)
+
+# IDE / editor — local-only
 .vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+.zed/
+.helix/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Logs & temp
+*.log
+*.tmp
+*.bak
+*.orig
+*.rej
+tmp/
+tmp-*/
+scratch/
+
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+.secrets/
+
+# Coverage & profiling
+*.profraw
+*.profdata
+tarpaulin-report.html
+lcov.info
+coverage/
+
+# Local benchmarks
+criterion/
+
+# Fuzz corpora (large + machine-generated)
+fuzz/corpus/
+fuzz/artifacts/
+
+# mdBook docs build output
+docs/book/
+
+# Local-only test renders (the canonical demo PNG IS committed)
 *.png
-!docs/*.png
 !aiscope-demo.png
-tmp-demo/
+!docs/**/*.png
+!assets/**/*.png
+
+# AI tool caches & local memory
+.aider*
+.cursor/cache/
+.claude/cache/
+
+# Personal scratch — anything in this folder is yours alone
+.local/
+private/

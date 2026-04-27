@@ -1,55 +1,96 @@
-//! GitHub Copilot memory scanner. **Implemented first per product priority.**
+//! GitHub Copilot memory scanner.
 //!
-//! Reads:
-//! - `.github/copilot-instructions.md` (repo-level)
-//! - `.github/instructions/*.instructions.md` (per-language)
-//!
-//! Does NOT touch VS Code workspace state in v0.1 (different storage per OS,
-//! complexity vs viral-value ratio is poor for the launch scope).
+//! | Path                                                  | Subsystem    |
+//! |-------------------------------------------------------|--------------|
+//! | `.github/copilot-instructions.md`                     | Instructions |
+//! | `.github/instructions/*.md`                           | Instructions |
+//! | `.github/prompts/*.prompt.md`                         | Prompts      |
+//! | `.github/chatmodes/*.chatmode.md`                     | ChatModes    |
+//! | `.github/agents/*.md`                                 | Agents       |
+//! | `AGENTS.md` (any depth, path-scoped)                  | Agents       |
 
-use crate::model::{Source, Tool};
+use super::common::{is_skip_dir, push_dir, push_if, read_file_to_source};
+use crate::model::{Source, Subsystem, Tool};
 use std::path::Path;
+use walkdir::WalkDir;
 
 pub fn scan_raw(repo_root: &Path) -> Vec<(Source, String)> {
-    let mut out = Vec::new();
+    let mut out: Vec<(Source, String)> = Vec::new();
 
-    let main = repo_root.join(".github").join("copilot-instructions.md");
-    if let Some(entry) = read(repo_root, &main, "copilot-instructions.md") {
-        out.push(entry);
-    }
+    let gh = repo_root.join(".github");
+    push_if(
+        &mut out,
+        repo_root,
+        &gh.join("copilot-instructions.md"),
+        Tool::Copilot,
+        Subsystem::Instructions,
+        ".github/copilot-instructions.md",
+    );
+    push_dir(
+        &mut out,
+        repo_root,
+        &gh.join("instructions"),
+        &["md"],
+        Tool::Copilot,
+        Subsystem::Instructions,
+        ".github/instructions/",
+    );
+    push_dir(
+        &mut out,
+        repo_root,
+        &gh.join("prompts"),
+        &["md"],
+        Tool::Copilot,
+        Subsystem::Prompts,
+        ".github/prompts/",
+    );
+    push_dir(
+        &mut out,
+        repo_root,
+        &gh.join("chatmodes"),
+        &["md"],
+        Tool::Copilot,
+        Subsystem::ChatModes,
+        ".github/chatmodes/",
+    );
+    push_dir(
+        &mut out,
+        repo_root,
+        &gh.join("agents"),
+        &["md"],
+        Tool::Copilot,
+        Subsystem::Agents,
+        ".github/agents/",
+    );
 
-    let inst_dir = repo_root.join(".github").join("instructions");
-    if inst_dir.is_dir() {
-        if let Ok(read_dir) = std::fs::read_dir(&inst_dir) {
-            let mut entries: Vec<_> = read_dir
-                .flatten()
-                .filter(|e| e.path().extension().map(|x| x == "md").unwrap_or(false))
-                .collect();
-            entries.sort_by_key(|e| e.path());
-            for e in entries {
-                let path = e.path();
-                let label = format!(
-                    ".github/instructions/{}",
-                    path.file_name().and_then(|n| n.to_str()).unwrap_or("?")
-                );
-                if let Some(entry) = read(repo_root, &path, &label) {
-                    out.push(entry);
-                }
+    // AGENTS.md at any depth — path-scoped to its directory.
+    for entry in WalkDir::new(repo_root)
+        .max_depth(6)
+        .into_iter()
+        .filter_entry(|e| !e.file_type().is_dir() || !is_skip_dir(&e.file_name().to_string_lossy()))
+        .flatten()
+    {
+        if entry.file_name() == "AGENTS.md" && entry.file_type().is_file() {
+            let p = entry.path();
+            let rel = p.strip_prefix(repo_root).unwrap_or(p);
+            let label = rel.to_string_lossy().replace('\\', "/");
+            let prefix = rel
+                .parent()
+                .map(|x| x.to_string_lossy().replace('\\', "/"))
+                .filter(|s| !s.is_empty())
+                .map(|s| format!("{s}/**"));
+            if let Some(e) = read_file_to_source(
+                repo_root,
+                p,
+                Tool::Copilot,
+                Subsystem::Agents,
+                &label,
+                prefix,
+            ) {
+                out.push(e);
             }
         }
     }
 
     out
-}
-
-fn read(repo_root: &Path, path: &Path, label: &str) -> Option<(Source, String)> {
-    let text = std::fs::read_to_string(path).ok()?;
-    Some((
-        Source {
-            tool: Tool::Copilot,
-            path: path.strip_prefix(repo_root).unwrap_or(path).to_path_buf(),
-            label: label.to_string(),
-        },
-        text,
-    ))
 }

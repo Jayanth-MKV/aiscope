@@ -6,7 +6,7 @@
 //!   ↑/↓ or j/k     scroll
 //!   PgUp/PgDn      page scroll
 
-use crate::model::{ConflictKind, ContextBundle, Tool};
+use crate::model::{ConflictKind, ContextBundle, Scope, Tool};
 use anyhow::Result;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
@@ -83,7 +83,8 @@ fn run_loop<B: ratatui::backend::Backend>(
                 KeyCode::Char('c') => st.conflicts_only = !st.conflicts_only,
                 KeyCode::Down | KeyCode::Char('j') => {
                     let i = st.rules_state.selected().unwrap_or(0).saturating_add(1);
-                    st.rules_state.select(Some(i.min(bundle.rules.len().saturating_sub(1))));
+                    st.rules_state
+                        .select(Some(i.min(bundle.rules.len().saturating_sub(1))));
                 }
                 KeyCode::Up | KeyCode::Char('k') => {
                     let i = st.rules_state.selected().unwrap_or(0);
@@ -91,7 +92,8 @@ fn run_loop<B: ratatui::backend::Backend>(
                 }
                 KeyCode::PageDown => {
                     let i = st.rules_state.selected().unwrap_or(0).saturating_add(10);
-                    st.rules_state.select(Some(i.min(bundle.rules.len().saturating_sub(1))));
+                    st.rules_state
+                        .select(Some(i.min(bundle.rules.len().saturating_sub(1))));
                 }
                 KeyCode::PageUp => {
                     let i = st.rules_state.selected().unwrap_or(0);
@@ -115,7 +117,7 @@ fn draw(frame: &mut ratatui::Frame, bundle: &ContextBundle, st: &mut State) {
         .conflicts
         .iter()
         .flat_map(|c| match c.kind {
-            ConflictKind::Duplicate => vec![c.left, c.right],
+            ConflictKind::Duplicate | ConflictKind::AgentToolMismatch => vec![c.left, c.right],
             ConflictKind::Clash | ConflictKind::PolarityConflict => vec![
                 bundle.assertions[c.left].statement_index,
                 bundle.assertions[c.right].statement_index,
@@ -150,12 +152,12 @@ fn draw(frame: &mut ratatui::Frame, bundle: &ContextBundle, st: &mut State) {
                 .filter(|r| r.source_index == idx)
                 .count();
             ListItem::new(Line::from(vec![
-                Span::styled(
-                    format!("{icon} "),
-                    Style::default().fg(tool_color(s.tool)),
-                ),
+                Span::styled(format!("{icon} "), Style::default().fg(tool_color(s.tool))),
                 Span::raw(format!("{} ", s.label)),
-                Span::styled(format!("({real_count})"), Style::default().fg(Color::DarkGray)),
+                Span::styled(
+                    format!("({real_count})"),
+                    Style::default().fg(Color::DarkGray),
+                ),
             ]))
         })
         .collect();
@@ -179,23 +181,34 @@ fn draw(frame: &mut ratatui::Frame, bundle: &ContextBundle, st: &mut State) {
             let src = bundle
                 .sources
                 .get(r.source_index)
-                .map(|s| (s.label.as_str(), s.tool))
-                .unwrap_or(("?", Tool::Cursor));
+                .map(|s| (s.label.as_str(), s.tool, &s.scope))
+                .unwrap_or(("?", Tool::Cursor, &EMPTY_SCOPE));
             let conflict = conflict_indices.contains(&i);
             let prefix = if conflict { "⚠ " } else { "  " };
+            let scope_tag = scope_tag(src.2);
             ListItem::new(Line::from(vec![
                 Span::styled(
                     prefix.to_string(),
                     Style::default().fg(if conflict { Color::Red } else { Color::Reset }),
                 ),
-                Span::styled(format!("[{}] ", src.0), Style::default().fg(tool_color(src.1))),
+                Span::styled(
+                    format!("[{}] ", src.0),
+                    Style::default().fg(tool_color(src.1)),
+                ),
                 Span::raw(r.text.clone()),
+                Span::styled(
+                    format!("  {}", scope_tag),
+                    Style::default().fg(Color::DarkGray),
+                ),
             ]))
         })
         .collect();
 
     let title = if st.conflicts_only {
-        format!(" Unified context · CONFLICTS ONLY ({} hits) ", conflict_indices.len())
+        format!(
+            " Unified context · CONFLICTS ONLY ({} hits) ",
+            conflict_indices.len()
+        )
     } else {
         format!(" Unified context ({} rules) ", bundle.rules.len())
     };
@@ -223,13 +236,19 @@ fn draw(frame: &mut ratatui::Frame, bundle: &ContextBundle, st: &mut State) {
             Span::raw(format!("{} rules · ", bundle.rules.len())),
             Span::styled(
                 format!("{} clashes ⚠", clash_count),
-                Style::default().fg(if clash_count > 0 { Color::Red } else { Color::Green }),
+                Style::default().fg(if clash_count > 0 {
+                    Color::Red
+                } else {
+                    Color::Green
+                }),
             ),
             Span::raw(format!(" · {} duplicates · ", dup_count)),
             Span::raw(format!("{} tokens · ", bundle.total_tokens)),
             Span::styled(
                 format!("{}% wasted", waste),
-                Style::default().fg(waste_color).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(waste_color)
+                    .add_modifier(Modifier::BOLD),
             ),
         ]),
         Line::from(Span::styled(
@@ -247,5 +266,36 @@ fn tool_color(t: Tool) -> Color {
         Tool::Cursor => Color::Cyan,
         Tool::Claude => Color::Magenta,
         Tool::Copilot => Color::Yellow,
+    }
+}
+
+/// Empty fallback `Scope` used when a rule's source can't be resolved.
+static EMPTY_SCOPE: Scope = Scope {
+    globs: Vec::new(),
+    always_apply: false,
+    path_prefix: None,
+    model: None,
+    tools: Vec::new(),
+};
+
+/// Compact one-line scope label for a rule row.
+/// Only shows what is *factual* — applyTo globs, path prefix, or `always`.
+fn scope_tag(s: &Scope) -> String {
+    if !s.globs.is_empty() {
+        let joined = s.globs.join(",");
+        let short = if joined.chars().count() > 28 {
+            let mut t: String = joined.chars().take(27).collect();
+            t.push('…');
+            t
+        } else {
+            joined
+        };
+        format!("[{short}]")
+    } else if let Some(p) = &s.path_prefix {
+        format!("[{p}]")
+    } else if s.always_apply {
+        "[always]".to_string()
+    } else {
+        String::new()
     }
 }

@@ -1,0 +1,120 @@
+name: release
+
+on:
+    push:
+        tags:
+            - "v*.*.*"
+
+permissions:
+    contents: write
+
+jobs:
+    build:
+        name: build (${{ matrix.target }})
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                      target: x86_64-unknown-linux-gnu
+                      archive: tar.gz
+                    - os: ubuntu-latest
+                      target: aarch64-unknown-linux-gnu
+                      archive: tar.gz
+                      cross: true
+                    - os: macos-latest
+                      target: x86_64-apple-darwin
+                      archive: tar.gz
+                    - os: macos-latest
+                      target: aarch64-apple-darwin
+                      archive: tar.gz
+                    - os: windows-latest
+                      target: x86_64-pc-windows-msvc
+                      archive: zip
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: ${{ matrix.target }}
+
+            - uses: Swatinem/rust-cache@v2
+              with:
+                  key: ${{ matrix.target }}
+
+            - name: Install cross (linux-aarch64 only)
+              if: matrix.cross
+              run: cargo install cross --locked
+
+            - name: Build
+              shell: bash
+              run: |
+                  if [[ "${{ matrix.cross }}" == "true" ]]; then
+                    cross build --release --target ${{ matrix.target }}
+                  else
+                    cargo build --release --target ${{ matrix.target }}
+                  fi
+
+            - name: Package
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  name="aiscope-${GITHUB_REF_NAME}-${{ matrix.target }}"
+                  mkdir "$name"
+                  if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+                    cp "target/${{ matrix.target }}/release/aiscope.exe" "$name/"
+                  else
+                    cp "target/${{ matrix.target }}/release/aiscope"     "$name/"
+                  fi
+                  cp README.md LICENSE CHANGELOG.md "$name/"
+                  if [[ "${{ matrix.archive }}" == "zip" ]]; then
+                    7z a "$name.zip" "$name"
+                    echo "ASSET=$name.zip" >> "$GITHUB_ENV"
+                  else
+                    tar czf "$name.tar.gz" "$name"
+                    echo "ASSET=$name.tar.gz" >> "$GITHUB_ENV"
+                  fi
+
+            - name: Checksum
+              shell: bash
+              run: |
+                  if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+                    shasum -a 256 "$ASSET" > "$ASSET.sha256"
+                  else
+                    sha256sum "$ASSET" > "$ASSET.sha256"
+                  fi
+
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ matrix.target }}
+                  path: |
+                      ${{ env.ASSET }}
+                      ${{ env.ASSET }}.sha256
+
+    publish:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/download-artifact@v4
+              with:
+                  path: dist
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  generate_release_notes: true
+                  body_path: CHANGELOG.md
+                  files: dist/*/*
+
+    crates-io:
+        needs: publish
+        runs-on: ubuntu-latest
+        if: ${{ vars.PUBLISH_CRATES_IO == 'true' }}
+        steps:
+            - uses: actions/checkout@v4
+            - uses: dtolnay/rust-toolchain@stable
+            - run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}

@@ -1,33 +1,32 @@
 //! aiscope — DevTools for your AI coding tools' memory.
-//!
-//! Read-only, local, no telemetry. Does NOT read session logs in v0.1.
 
 use aiscope::cmd;
+use aiscope::reason::ReasonMode;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
+use std::process::ExitCode;
 
-/// aiscope — see what your AI coding tools actually remember about your project.
 #[derive(Debug, Parser)]
 #[command(name = "aiscope", version, about, long_about = None)]
 struct Cli {
-    /// Path to the repository to scan (defaults to current directory).
+    /// Path to the repository to scan.
     #[arg(default_value = ".")]
     path: PathBuf,
 
-    /// Output mode.
+    /// Plain text output.
     #[arg(long, conflicts_with_all = ["json", "card", "diag"])]
     text: bool,
 
-    /// Emit machine-readable JSON to stdout.
+    /// Machine-readable JSON.
     #[arg(long, conflicts_with_all = ["text", "card", "diag"])]
     json: bool,
 
-    /// Render a shareable PNG card to the given path.
+    /// Render a shareable PNG card.
     #[arg(long, value_name = "PATH", conflicts_with_all = ["text", "json", "diag"])]
     card: Option<PathBuf>,
 
-    /// Render conflicts as compiler-grade diagnostics (miette).
+    /// Compiler-grade diagnostics (miette).
     #[arg(long, conflicts_with_all = ["text", "json", "card"])]
     diag: bool,
 
@@ -35,19 +34,29 @@ struct Cli {
     #[arg(long, value_name = "PATTERN")]
     grep: Option<String>,
 
+    /// Subsystem-aware reasoning. Disables conflicts between Prompts and
+    /// Instructions, between Agents and non-Agents, etc. Default is
+    /// uniform mode (every cross-file pair is a candidate conflict).
+    #[arg(long)]
+    specific: bool,
+
+    /// Also scan user-scope memory files (`~/.claude/CLAUDE.md`, etc.).
+    #[arg(long)]
+    user: bool,
+
     #[command(subcommand)]
     command: Option<Command>,
 }
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// CI mode: scan and exit 1 if any conflicts are detected.
+    /// CI mode: scan and exit 1 if any high-severity conflicts are detected.
     Check,
     /// Watch the repo and re-scan on file changes.
     Watch,
 }
 
-fn main() -> Result<()> {
+fn main() -> Result<ExitCode> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -56,10 +65,14 @@ fn main() -> Result<()> {
         .init();
 
     let cli = Cli::parse();
+    let pipeline = cmd::PipelineOptions {
+        mode: if cli.specific { ReasonMode::Specific } else { ReasonMode::Uniform },
+        include_user: cli.user,
+    };
 
     match cli.command {
-        Some(Command::Check) => cmd::check::run(&cli.path),
-        Some(Command::Watch) => cmd::watch::run(&cli.path),
+        Some(Command::Check) => cmd::check::run(&cli.path, pipeline),
+        Some(Command::Watch) => cmd::watch::run(&cli.path, pipeline).map(|_| ExitCode::SUCCESS),
         None => cmd::scan::run(
             &cli.path,
             &cmd::scan::ScanOptions {
@@ -68,7 +81,9 @@ fn main() -> Result<()> {
                 card: cli.card,
                 grep: cli.grep,
                 diag: cli.diag,
+                pipeline,
             },
-        ),
+        )
+        .map(|_| ExitCode::SUCCESS),
     }
 }

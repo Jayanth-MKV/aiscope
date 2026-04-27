@@ -6,6 +6,7 @@ pub mod cmd;
 pub mod detect;
 pub mod diag;
 pub mod extract;
+pub mod frontmatter;
 pub mod model;
 pub mod parse;
 pub mod reason;

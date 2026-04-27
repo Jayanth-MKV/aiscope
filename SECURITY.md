@@ -2,7 +2,25 @@
 
 ## Reporting a vulnerability
 
-Please email security@aiscope.dev (placeholder) with details. Do **not** open a public issue for security problems.
+Please report security issues **privately** via GitHub's built-in
+**Private Vulnerability Reporting**:
+
+> [github.com/Jayanth-MKV/aiscope/security/advisories/new](https://github.com/Jayanth-MKV/aiscope/security/advisories/new)
+
+This opens an encrypted channel visible only to you and the maintainers — no
+email needed, no public disclosure until a fix is ready.
+
+If for some reason that link doesn't work for you, open a minimal public
+issue titled `security: please contact me` and a maintainer will reach out
+through GitHub. **Do not** include vulnerability details in a public issue.
+
+We aim to acknowledge new reports within **72 hours** and ship a fix or
+mitigation for confirmed issues within **30 days**.
+
+## Supported versions
+
+Only the latest `0.x` release receives security fixes. Once `1.0` ships,
+the latest `1.x` will be the supported line.
 
 ## Scope
 

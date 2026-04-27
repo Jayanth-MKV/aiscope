@@ -1,13 +1,33 @@
-//! `aiscope watch` — live re-scan on file change. Stub for v0.1.
+//! `aiscope watch` — re-scan on file changes.
 
+use super::PipelineOptions;
 use anyhow::Result;
+use notify::{Event, RecursiveMode, Watcher};
 use std::path::Path;
+use std::sync::mpsc;
+use std::time::{Duration, Instant};
 
-pub fn run(repo_root: &Path) -> Result<()> {
-    // TODO(v0.1 Sunday): notify-rs watcher on .cursor/, .claude/, .github/
-    // and re-render TUI on debounced change events.
-    let bundle = super::build_bundle(repo_root);
-    print!("{}", crate::render::text::render(&bundle));
-    eprintln!("\nwatch mode: not yet implemented (v0.1 stub) \u{2014} exiting after one scan.");
+pub fn run(path: &Path, pipeline: PipelineOptions) -> Result<()> {
+    let (tx, rx) = mpsc::channel::<notify::Result<Event>>();
+    let mut watcher = notify::recommended_watcher(move |res| {
+        let _ = tx.send(res);
+    })?;
+    watcher.watch(path, RecursiveMode::Recursive)?;
+
+    print_bundle(path, pipeline);
+
+    let mut last = Instant::now();
+    while let Ok(_evt) = rx.recv() {
+        if last.elapsed() < Duration::from_millis(150) {
+            continue;
+        }
+        print_bundle(path, pipeline);
+        last = Instant::now();
+    }
     Ok(())
+}
+
+fn print_bundle(path: &Path, pipeline: PipelineOptions) {
+    let bundle = super::build_bundle(path, pipeline);
+    print!("{}", crate::render::text::render(&bundle));
 }

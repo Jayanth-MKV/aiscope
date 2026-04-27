@@ -14,14 +14,17 @@ fn detects_camel_vs_snake_across_cursor_and_claude() {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path().to_path_buf();
 
-    copy("tests/fixtures/cursor/.cursorrules", &root.join(".cursorrules"));
+    copy(
+        "tests/fixtures/cursor/.cursorrules",
+        &root.join(".cursorrules"),
+    );
     copy("tests/fixtures/claude/CLAUDE.md", &root.join("CLAUDE.md"));
     copy(
         "tests/fixtures/copilot/copilot-instructions.md",
         &root.join(".github").join("copilot-instructions.md"),
     );
 
-    let bundle = aiscope::build_bundle(&root);
+    let bundle = aiscope::build_bundle(&root, aiscope::cmd::PipelineOptions::default());
 
     assert!(
         !bundle.statements.is_empty(),

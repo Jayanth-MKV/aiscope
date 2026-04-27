@@ -22,7 +22,7 @@ pub fn render(bundle: &ContextBundle) -> String {
         for c in &bundle.conflicts {
             // Resolve left/right to underlying rule indices.
             let (li, ri) = match c.kind {
-                ConflictKind::Duplicate => (c.left, c.right),
+                ConflictKind::Duplicate | ConflictKind::AgentToolMismatch => (c.left, c.right),
                 ConflictKind::Clash | ConflictKind::PolarityConflict => (
                     bundle.assertions[c.left].statement_index,
                     bundle.assertions[c.right].statement_index,
@@ -35,13 +35,22 @@ pub fn render(bundle: &ContextBundle) -> String {
                 ConflictKind::Duplicate => "DUP",
                 ConflictKind::Clash => "CLASH",
                 ConflictKind::PolarityConflict => "POLARITY",
+                ConflictKind::AgentToolMismatch => "AGENT-TOOL",
             };
             let sev = match c.severity {
                 crate::model::Severity::High => "high",
                 crate::model::Severity::Low => "low",
             };
-            let lsrc = bundle.sources.get(l.source_index).map(|s| s.label.as_str()).unwrap_or("?");
-            let rsrc = bundle.sources.get(r.source_index).map(|s| s.label.as_str()).unwrap_or("?");
+            let lsrc = bundle
+                .sources
+                .get(l.source_index)
+                .map(|s| s.label.as_str())
+                .unwrap_or("?");
+            let rsrc = bundle
+                .sources
+                .get(r.source_index)
+                .map(|s| s.label.as_str())
+                .unwrap_or("?");
             out.push_str(&format!("  [{}] {} ({sev})\n", tag, c.note));
             out.push_str(&format!("       {}: {}\n", lsrc, truncate(&l.text, 70)));
             out.push_str(&format!("       {}: {}\n", rsrc, truncate(&r.text, 70)));

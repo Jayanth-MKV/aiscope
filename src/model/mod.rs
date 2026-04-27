@@ -41,13 +41,72 @@ impl Tool {
     }
 }
 
+/// Which *subsystem* of a tool this file belongs to. Different subsystems
+/// have different intent and so different conflict semantics:
+///
+/// - `Instructions` — general guidance always-on (copilot-instructions.md,
+///   `.cursorrules`, CLAUDE.md, `.github/instructions/*`).
+/// - `Prompts` — slash-command actions invoked explicitly by the user.
+/// - `Agents` — autonomous task-runners with their own tool allowlists.
+/// - `ChatModes` — capability bundles selected per chat session.
+/// - `Skills` — reusable knowledge packs (e.g. `.claude/skills/*/SKILL.md`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Subsystem {
+    Instructions,
+    Prompts,
+    Agents,
+    ChatModes,
+    Skills,
+}
+
+impl Subsystem {
+    pub fn label(&self) -> &'static str {
+        match self {
+            Subsystem::Instructions => "instructions",
+            Subsystem::Prompts => "prompts",
+            Subsystem::Agents => "agents",
+            Subsystem::ChatModes => "chatmodes",
+            Subsystem::Skills => "skills",
+        }
+    }
+}
+
+/// Where a memory file's content actually applies. Combines explicit
+/// frontmatter (`applyTo`, `globs`, `alwaysApply`) and path-derived scope
+/// (e.g. `apps/web/AGENTS.md` is implicitly scoped to `apps/web/**`).
+///
+/// Two `Scope`s **overlap** if any path matches both. Non-overlapping
+/// scopes mean two rules can't both be active for the same file, so a
+/// would-be conflict is downgraded to `Severity::Low`.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Scope {
+    /// Glob patterns the rule applies to. Empty = applies everywhere.
+    pub globs: Vec<String>,
+    /// Whether `alwaysApply: true` was set in frontmatter.
+    pub always_apply: bool,
+    /// Path prefix derived from the file's location (e.g. `apps/web/`).
+    pub path_prefix: Option<String>,
+    /// Optional model restriction from frontmatter.
+    pub model: Option<String>,
+    /// Tool-allowlist restriction from frontmatter.
+    pub tools: Vec<String>,
+}
+
 /// One source file (a single rule/instruction file on disk).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Source {
     pub tool: Tool,
+    pub subsystem: Subsystem,
     pub path: PathBuf,
     /// Display label (e.g. ".cursorrules", "CLAUDE.md").
     pub label: String,
+    /// Optional name extracted from frontmatter (agents/skills/prompts).
+    pub name: Option<String>,
+    /// Optional one-line description from frontmatter.
+    pub description: Option<String>,
+    /// Where this file's rules apply (frontmatter + path-derived).
+    pub scope: Scope,
 }
 
 // ---------------------------------------------------------------------------
@@ -238,6 +297,9 @@ pub enum ConflictKind {
     Clash,
     /// One asserts X, another forbids X (explicit polarity conflict).
     PolarityConflict,
+    /// An instruction names a tool the agent's allowlist excludes,
+    /// or the agent has no allowlist at all.
+    AgentToolMismatch,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

@@ -1,0 +1,11 @@
+# Default reviewers for everything.
+
+-       @Jayanth-MKV
+
+# Workflow & release plumbing — extra care.
+
+/.github/ @Jayanth-MKV
+
+# Docs site — anyone with the docs label can review.
+
+/docs/ @Jayanth-MKV
