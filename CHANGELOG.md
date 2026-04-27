@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-04-27
+
+### Changed
+
+- `homepage` now points to the mdBook user guide at
+  <https://jayanth-mkv.github.io/aiscope/>.
+- `documentation` retains <https://docs.rs/aiscope> for API reference.
+- README is now embedded as the docs.rs landing page.
+
 ## [0.1.0] — 2026-04-27
 
 ### Added

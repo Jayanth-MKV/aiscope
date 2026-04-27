@@ -1,5 +1,6 @@
 //! Public library API — used by integration tests and (later) embedders.
 //! The binary entry point is `src/main.rs`.
+#![doc = include_str!("../README.md")]
 
 pub mod canon;
 pub mod cmd;
