@@ -37,7 +37,7 @@ toml = "1.1"
 # File I/O
 walkdir = "2"
 ignore = "0.4"
-directories = "5"
+directories = "6"
 notify = "8"
 globset = "0.4"
 
