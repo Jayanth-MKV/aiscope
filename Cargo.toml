@@ -1,17 +1,21 @@
 [package]
 name = "aiscope"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 rust-version = "1.85"
 authors = ["aiscope contributors"]
 license = "MIT"
 description = "DevTools for your AI coding tools' memory. See what Cursor, Claude Code, and Copilot actually remember about your project — and where they disagree."
 repository = "https://github.com/Jayanth-MKV/aiscope"
-homepage = "https://aiscope.dev"
+homepage = "https://jayanth-mkv.github.io/aiscope/"
 documentation = "https://docs.rs/aiscope"
 readme = "README.md"
 keywords = ["ai", "cursor", "claude", "copilot", "devtools"]
 categories = ["command-line-utilities", "development-tools"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 # Default = deterministic core only (~5MB, instant, no network).

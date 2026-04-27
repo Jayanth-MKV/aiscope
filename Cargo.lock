@@ -33,7 +33,7 @@ dependencies = [
 
 [[package]]
 name = "aiscope"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "caseless",
