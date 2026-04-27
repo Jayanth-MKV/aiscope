@@ -8,22 +8,22 @@ expression: out
     {
       "source_index": 0,
       "text": "Use snake_case for variables in legacy code.",
-      "byte_start": 17,
-      "byte_end": 65,
+      "byte_start": 15,
+      "byte_end": 62,
       "line": 3
     },
     {
       "source_index": 0,
       "text": "Use camelCase for variables in new code.",
-      "byte_start": 65,
-      "byte_end": 109,
+      "byte_start": 62,
+      "byte_end": 105,
       "line": 4
     },
     {
       "source_index": 0,
       "text": "Prefer single quotes for strings, but use backticks for templates.",
-      "byte_start": 109,
-      "byte_end": 179,
+      "byte_start": 105,
+      "byte_end": 174,
       "line": 5
     }
   ],

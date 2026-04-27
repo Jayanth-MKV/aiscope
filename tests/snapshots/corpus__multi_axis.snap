@@ -9,21 +9,21 @@ expression: out
       "source_index": 0,
       "text": "Use 2 spaces for indentation, never tabs.",
       "byte_start": 0,
-      "byte_end": 45,
+      "byte_end": 44,
       "line": 1
     },
     {
       "source_index": 0,
       "text": "Heavy commenting is required on public APIs.",
-      "byte_start": 45,
-      "byte_end": 93,
+      "byte_start": 44,
+      "byte_end": 91,
       "line": 2
     },
     {
       "source_index": 0,
       "text": "Default-import React from 'react' (legacy convention).",
-      "byte_start": 93,
-      "byte_end": 151,
+      "byte_start": 91,
+      "byte_end": 148,
       "line": 3
     }
   ],

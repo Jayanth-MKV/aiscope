@@ -8,29 +8,29 @@ expression: out
     {
       "source_index": 0,
       "text": "Always use async/ await over .then() promise chains.",
-      "byte_start": 54,
-      "byte_end": 115,
+      "byte_start": 48,
+      "byte_end": 108,
       "line": 7
     },
     {
       "source_index": 0,
       "text": "Prefer pnpm for installing dependencies.",
-      "byte_start": 115,
-      "byte_end": 161,
+      "byte_start": 108,
+      "byte_end": 153,
       "line": 8
     },
     {
       "source_index": 0,
       "text": "Co-locate tests as *.test.ts beside the file under test.",
-      "byte_start": 161,
-      "byte_end": 225,
+      "byte_start": 153,
+      "byte_end": 215,
       "line": 9
     },
     {
       "source_index": 0,
       "text": "Standalone paragraph: enable strict TypeScript.",
-      "byte_start": 380,
-      "byte_end": 429,
+      "byte_start": 363,
+      "byte_end": 411,
       "line": 18
     }
   ],

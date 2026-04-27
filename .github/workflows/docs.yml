@@ -2,14 +2,14 @@ name: docs
 
 on:
     push:
-        branches: [main]
+        branches: [ main ]
         paths:
             - "docs/**"
             - "CHANGELOG.md"
             - ".github/workflows/docs.yml"
     workflow_dispatch:
 
-# Read-only by default; jobs opt into more.
+        # Read-only by default; jobs opt into more.
 permissions: read-all
 
 concurrency:

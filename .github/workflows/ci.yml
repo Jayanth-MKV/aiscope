@@ -2,11 +2,11 @@ name: ci
 
 on:
     push:
-        branches: [main]
+        branches: [ main ]
     pull_request:
     workflow_dispatch:
 
-# Default to read-only at the workflow scope; jobs opt into more if needed.
+        # Default to read-only at the workflow scope; jobs opt into more if needed.
 permissions: read-all
 
 concurrency:
@@ -22,7 +22,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                os: [ubuntu-latest, macos-latest, windows-latest]
+                os: [ ubuntu-latest, macos-latest, windows-latest ]
         steps:
             - name: Checkout
               uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
