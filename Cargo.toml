@@ -49,7 +49,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # TUI
 ratatui = "0.29"
-crossterm = "0.28"
+crossterm = "0.29"
 
 # Compiler-grade diagnostics
 miette = { version = "7", features = ["fancy-no-backtrace"] }
