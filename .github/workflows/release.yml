@@ -123,11 +123,28 @@ jobs:
               with:
                   path: dist
 
+            - name: Extract release notes from CHANGELOG
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  version="${GITHUB_REF_NAME#v}"
+                  # Print everything between "## [<version>]" and the next "## [" heading.
+                  awk -v ver="$version" '
+                      $0 ~ "^## \\[" ver "\\]" { found=1; next }
+                      found && /^## \[/        { exit }
+                      found                    { print }
+                  ' CHANGELOG.md > RELEASE_NOTES.md
+                  if [ ! -s RELEASE_NOTES.md ]; then
+                    echo "Release ${GITHUB_REF_NAME}" > RELEASE_NOTES.md
+                  fi
+                  echo "----- RELEASE_NOTES.md -----"
+                  cat RELEASE_NOTES.md
+
             - name: Create GitHub Release
               uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
               with:
                   generate_release_notes: true
-                  body_path: CHANGELOG.md
+                  body_path: RELEASE_NOTES.md
                   files: dist/*/*
 
     crates-io:
