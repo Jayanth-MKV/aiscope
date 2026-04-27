@@ -65,7 +65,7 @@ sha2 = "0.10"
 
 # Rendering (PNG card)
 tiny-skia = "0.11"
-cosmic-text = "0.12"
+cosmic-text = "0.17"
 
 # Semantic layer (optional, downloads models on first run)
 fastembed = { version = "4", optional = true, default-features = false, features = [
