@@ -2,7 +2,7 @@
 
 use crate::model::Rule;
 use std::sync::OnceLock;
-use tiktoken_rs::{cl100k_base, CoreBPE};
+use tiktoken_rs::{CoreBPE, cl100k_base};
 
 fn bpe() -> &'static CoreBPE {
     static B: OnceLock<CoreBPE> = OnceLock::new();

@@ -9,8 +9,8 @@
 use crate::model::{Conflict, ConflictKind, ContextBundle, Severity};
 use anyhow::{Context, Result};
 use cosmic_text::{
-    fontdb::Database, Attrs, Buffer, Color as CosColor, Family, FontSystem, Metrics, Shaping,
-    SwashCache,
+    Attrs, Buffer, Color as CosColor, Family, FontSystem, Metrics, Shaping, SwashCache,
+    fontdb::Database,
 };
 use std::path::Path;
 use tiny_skia::{Color, Pixmap, Rect, Transform};

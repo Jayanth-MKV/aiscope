@@ -2,22 +2,52 @@ name: ci
 
 on:
     push:
-        branches: [ main ]
+        branches: [main]
     pull_request:
+    workflow_dispatch:
+
+# Default to read-only at the workflow scope; jobs opt into more if needed.
+permissions: read-all
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
     test:
+        name: test (${{ matrix.os }})
         runs-on: ${{ matrix.os }}
+        permissions:
+            contents: read
         strategy:
+            fail-fast: false
             matrix:
-                os: [ ubuntu-latest, macos-latest, windows-latest ]
+                os: [ubuntu-latest, macos-latest, windows-latest]
         steps:
-            - uses: actions/checkout@v4
-            - uses: dtolnay/rust-toolchain@stable
+            - name: Checkout
+              uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+              with:
+                  persist-credentials: false
+
+            # `dtolnay/rust-toolchain` uses branch refs (`@stable`, `@nightly`)
+            # as its toolchain selector; pinning to a SHA would defeat that.
+            # Dependabot does not auto-update this one — bump manually if needed.
+            - name: Install Rust toolchain
+              uses: dtolnay/rust-toolchain@stable
               with:
                   components: rustfmt, clippy
-            - uses: Swatinem/rust-cache@v2
-            - run: cargo fmt --all -- --check
-            - run: cargo clippy --all-targets -- -D warnings
-            - run: cargo test --all
-            - run: cargo build --release
+
+            - name: Cache cargo
+              uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc # v2.9.1
+
+            - name: Format
+              run: cargo fmt --all -- --check
+
+            - name: Clippy
+              run: cargo clippy --all-targets -- -D warnings
+
+            - name: Test
+              run: cargo test --all
+
+            - name: Release build
+              run: cargo build --release

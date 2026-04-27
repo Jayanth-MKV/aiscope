@@ -35,7 +35,13 @@ pub fn extract(stmt_index: usize, stmt: &Statement, _canon: &CanonicalText) -> V
         let condition = clause.condition.map(|raw| Condition { raw });
 
         for ext in EXTRACTORS {
-            ext(&clause.text, polarity, condition.as_ref(), stmt_index, &mut out);
+            ext(
+                &clause.text,
+                polarity,
+                condition.as_ref(),
+                stmt_index,
+                &mut out,
+            );
         }
     }
 
@@ -47,16 +53,31 @@ pub fn extract(stmt_index: usize, stmt: &Statement, _canon: &CanonicalText) -> V
 // ---------------------------------------------------------------------------
 
 const FORBID_WORDS: &[&str] = &[
-    "don't", "do not", "dont", "never", "avoid", "forbid", "ban", "no ",
-    "not ", "without",
+    "don't", "do not", "dont", "never", "avoid", "forbid", "ban", "no ", "not ", "without",
 ];
 const PREFER_WORDS: &[&str] = &[
-    "use ", "prefer", "always", "must", "should", "require", "stick to",
-    "go with", "default to", "favour", "favor", "choose",
+    "use ",
+    "prefer",
+    "always",
+    "must",
+    "should",
+    "require",
+    "stick to",
+    "go with",
+    "default to",
+    "favour",
+    "favor",
+    "choose",
 ];
 const ALLOW_WORDS: &[&str] = &[
-    "may", "can ", "is allowed", "is fine", "is acceptable", "is ok",
-    "is okay", "permitted",
+    "may",
+    "can ",
+    "is allowed",
+    "is fine",
+    "is acceptable",
+    "is ok",
+    "is okay",
+    "permitted",
 ];
 
 fn detect_polarity(text: &str) -> Polarity {
@@ -103,7 +124,10 @@ fn split_clauses(text: &str) -> Vec<Clause> {
         });
     }
     if out.is_empty() {
-        out.push(Clause { text: text.to_string(), condition: None });
+        out.push(Clause {
+            text: text.to_string(),
+            condition: None,
+        });
     }
     out
 }
@@ -177,12 +201,36 @@ fn extract_naming(
     let table = RX.get_or_init(|| {
         let mk = |re: &str, v: AxisValue, s: NamingScope| (Regex::new(re).unwrap(), v, s);
         vec![
-            mk(r"\bcamel[\s_-]?cas(?:e|ing|ed)\b", AxisValue::CamelCase, NamingScope::Any),
-            mk(r"\bsnake[\s_-]?cas(?:e|ing|ed)\b", AxisValue::SnakeCase, NamingScope::Any),
-            mk(r"\bpascal[\s_-]?cas(?:e|ing|ed)\b", AxisValue::PascalCase, NamingScope::Any),
-            mk(r"\bkebab[\s_-]?cas(?:e|ing|ed)\b", AxisValue::KebabCase, NamingScope::Any),
-            mk(r"\bscreaming[\s_-]?snake[\s_-]?case\b", AxisValue::ScreamingSnakeCase, NamingScope::Any),
-            mk(r"\ball[\s_-]?caps\b", AxisValue::ScreamingSnakeCase, NamingScope::Constants),
+            mk(
+                r"\bcamel[\s_-]?cas(?:e|ing|ed)\b",
+                AxisValue::CamelCase,
+                NamingScope::Any,
+            ),
+            mk(
+                r"\bsnake[\s_-]?cas(?:e|ing|ed)\b",
+                AxisValue::SnakeCase,
+                NamingScope::Any,
+            ),
+            mk(
+                r"\bpascal[\s_-]?cas(?:e|ing|ed)\b",
+                AxisValue::PascalCase,
+                NamingScope::Any,
+            ),
+            mk(
+                r"\bkebab[\s_-]?cas(?:e|ing|ed)\b",
+                AxisValue::KebabCase,
+                NamingScope::Any,
+            ),
+            mk(
+                r"\bscreaming[\s_-]?snake[\s_-]?case\b",
+                AxisValue::ScreamingSnakeCase,
+                NamingScope::Any,
+            ),
+            mk(
+                r"\ball[\s_-]?caps\b",
+                AxisValue::ScreamingSnakeCase,
+                NamingScope::Constants,
+            ),
         ]
     });
 
@@ -201,8 +249,11 @@ fn detect_naming_scope(text: &str) -> Option<NamingScope> {
         Some(NamingScope::Variables)
     } else if text.contains("function") || text.contains("method") {
         Some(NamingScope::Functions)
-    } else if text.contains("type") || text.contains("class") || text.contains("interface")
-        || text.contains("struct") || text.contains("enum")
+    } else if text.contains("type")
+        || text.contains("class")
+        || text.contains("interface")
+        || text.contains("struct")
+        || text.contains("enum")
     {
         Some(NamingScope::Types)
     } else if text.contains("constant") {
@@ -226,13 +277,34 @@ fn extract_indentation(
     static RX: OnceLock<Vec<(Regex, AxisValue)>> = OnceLock::new();
     let table = RX.get_or_init(|| {
         vec![
-            (Regex::new(r"\b(?:use\s+)?tabs?\b(?:\s+for\s+indent\w*)?").unwrap(), AxisValue::Tabs),
-            (Regex::new(r"\bindent\w*\s+with\s+tabs?\b").unwrap(), AxisValue::Tabs),
-            (Regex::new(r"\b2[\s-]?spaces?\b").unwrap(), AxisValue::Spaces2),
-            (Regex::new(r"\btwo\s+spaces?\b").unwrap(), AxisValue::Spaces2),
-            (Regex::new(r"\b4[\s-]?spaces?\b").unwrap(), AxisValue::Spaces4),
-            (Regex::new(r"\bfour\s+spaces?\b").unwrap(), AxisValue::Spaces4),
-            (Regex::new(r"\b8[\s-]?spaces?\b").unwrap(), AxisValue::Spaces8),
+            (
+                Regex::new(r"\b(?:use\s+)?tabs?\b(?:\s+for\s+indent\w*)?").unwrap(),
+                AxisValue::Tabs,
+            ),
+            (
+                Regex::new(r"\bindent\w*\s+with\s+tabs?\b").unwrap(),
+                AxisValue::Tabs,
+            ),
+            (
+                Regex::new(r"\b2[\s-]?spaces?\b").unwrap(),
+                AxisValue::Spaces2,
+            ),
+            (
+                Regex::new(r"\btwo\s+spaces?\b").unwrap(),
+                AxisValue::Spaces2,
+            ),
+            (
+                Regex::new(r"\b4[\s-]?spaces?\b").unwrap(),
+                AxisValue::Spaces4,
+            ),
+            (
+                Regex::new(r"\bfour\s+spaces?\b").unwrap(),
+                AxisValue::Spaces4,
+            ),
+            (
+                Regex::new(r"\b8[\s-]?spaces?\b").unwrap(),
+                AxisValue::Spaces8,
+            ),
         ]
     });
     // Only fire if the statement is actually about indentation/style.
@@ -256,17 +328,45 @@ fn extract_quote_style(
     si: usize,
     out: &mut Vec<Assertion>,
 ) {
-    if !text.contains("quote") && !text.contains("string") && !text.contains("'") && !text.contains('"') {
+    if !text.contains("quote")
+        && !text.contains("string")
+        && !text.contains("'")
+        && !text.contains('"')
+    {
         return;
     }
     if text.contains("single quote") || text.contains("single-quote") {
-        push(out, si, Axis::QuoteStyle, AxisValue::SingleQuote, pol, cond, 0.96);
+        push(
+            out,
+            si,
+            Axis::QuoteStyle,
+            AxisValue::SingleQuote,
+            pol,
+            cond,
+            0.96,
+        );
     }
     if text.contains("double quote") || text.contains("double-quote") {
-        push(out, si, Axis::QuoteStyle, AxisValue::DoubleQuote, pol, cond, 0.96);
+        push(
+            out,
+            si,
+            Axis::QuoteStyle,
+            AxisValue::DoubleQuote,
+            pol,
+            cond,
+            0.96,
+        );
     }
     if text.contains("backtick") || text.contains("template literal") {
-        push(out, si, Axis::QuoteStyle, AxisValue::Backtick, pol, cond, 0.95);
+        push(
+            out,
+            si,
+            Axis::QuoteStyle,
+            AxisValue::Backtick,
+            pol,
+            cond,
+            0.95,
+        );
     }
 }
 
@@ -327,13 +427,37 @@ fn extract_async_style(
     if (text.contains("async") || text.contains("await"))
         && (text.contains("async/await") || text.contains("async-await") || text.contains("await"))
     {
-        push(out, si, Axis::AsyncStyle, AxisValue::AsyncAwait, pol, cond, 0.94);
+        push(
+            out,
+            si,
+            Axis::AsyncStyle,
+            AxisValue::AsyncAwait,
+            pol,
+            cond,
+            0.94,
+        );
     }
     if text.contains("promise chain") || text.contains(".then(") || text.contains("then chains") {
-        push(out, si, Axis::AsyncStyle, AxisValue::PromiseChain, pol, cond, 0.93);
+        push(
+            out,
+            si,
+            Axis::AsyncStyle,
+            AxisValue::PromiseChain,
+            pol,
+            cond,
+            0.93,
+        );
     }
     if text.contains("callback") {
-        push(out, si, Axis::AsyncStyle, AxisValue::Callbacks, pol, cond, 0.90);
+        push(
+            out,
+            si,
+            Axis::AsyncStyle,
+            AxisValue::Callbacks,
+            pol,
+            cond,
+            0.90,
+        );
     }
 }
 
@@ -350,11 +474,38 @@ fn extract_test_colocation(
     if !test_topic {
         return;
     }
-    if text.contains("co-locate") || text.contains("colocate") || text.contains("beside") || text.contains("next to") || text.contains("alongside") {
-        push(out, si, Axis::TestColocation, AxisValue::BesideSource, pol, cond, 0.95);
+    if text.contains("co-locate")
+        || text.contains("colocate")
+        || text.contains("beside")
+        || text.contains("next to")
+        || text.contains("alongside")
+    {
+        push(
+            out,
+            si,
+            Axis::TestColocation,
+            AxisValue::BesideSource,
+            pol,
+            cond,
+            0.95,
+        );
     }
-    if text.contains("__tests__") || text.contains("/tests/") || text.contains("dedicated") || text.contains("separate test") || text.contains("test directory") || text.contains("tests folder") {
-        push(out, si, Axis::TestColocation, AxisValue::DedicatedDir, pol, cond, 0.93);
+    if text.contains("__tests__")
+        || text.contains("/tests/")
+        || text.contains("dedicated")
+        || text.contains("separate test")
+        || text.contains("test directory")
+        || text.contains("tests folder")
+    {
+        push(
+            out,
+            si,
+            Axis::TestColocation,
+            AxisValue::DedicatedDir,
+            pol,
+            cond,
+            0.93,
+        );
     }
 }
 
@@ -368,14 +519,40 @@ fn extract_type_strictness(
     out: &mut Vec<Assertion>,
 ) {
     if text.contains("strict") && (text.contains("type") || text.contains("typescript")) {
-        push(out, si, Axis::TypeStrictness, AxisValue::Strict, pol, cond, 0.92);
+        push(
+            out,
+            si,
+            Axis::TypeStrictness,
+            AxisValue::Strict,
+            pol,
+            cond,
+            0.92,
+        );
     }
-    if text.contains("any") && (text.contains("type") || text.contains("avoid") || text.contains("allow")) {
+    if text.contains("any")
+        && (text.contains("type") || text.contains("avoid") || text.contains("allow"))
+    {
         // "avoid any" → polarity Forbid against Loose; "any is fine" → Allow Loose.
-        push(out, si, Axis::TypeStrictness, AxisValue::Loose, pol, cond, 0.85);
+        push(
+            out,
+            si,
+            Axis::TypeStrictness,
+            AxisValue::Loose,
+            pol,
+            cond,
+            0.85,
+        );
     }
     if text.contains("noimplicitany") {
-        push(out, si, Axis::TypeStrictness, AxisValue::Strict, pol, cond, 0.95);
+        push(
+            out,
+            si,
+            Axis::TypeStrictness,
+            AxisValue::Strict,
+            pol,
+            cond,
+            0.95,
+        );
     }
 }
 
@@ -389,10 +566,31 @@ fn extract_error_handling(
     out: &mut Vec<Assertion>,
 ) {
     if text.contains("throw") || text.contains("exception") {
-        push(out, si, Axis::ErrorHandling, AxisValue::Throw, pol, cond, 0.90);
+        push(
+            out,
+            si,
+            Axis::ErrorHandling,
+            AxisValue::Throw,
+            pol,
+            cond,
+            0.90,
+        );
     }
-    if text.contains("result type") || text.contains("result<") || text.contains("either type") || text.contains("neverthrow") || text.contains("ok/err") {
-        push(out, si, Axis::ErrorHandling, AxisValue::ResultType, pol, cond, 0.93);
+    if text.contains("result type")
+        || text.contains("result<")
+        || text.contains("either type")
+        || text.contains("neverthrow")
+        || text.contains("ok/err")
+    {
+        push(
+            out,
+            si,
+            Axis::ErrorHandling,
+            AxisValue::ResultType,
+            pol,
+            cond,
+            0.93,
+        );
     }
 }
 
@@ -409,13 +607,37 @@ fn extract_import_style(
         return;
     }
     if text.contains("named import") || text.contains("named exports") {
-        push(out, si, Axis::ImportStyle, AxisValue::NamedImport, pol, cond, 0.93);
+        push(
+            out,
+            si,
+            Axis::ImportStyle,
+            AxisValue::NamedImport,
+            pol,
+            cond,
+            0.93,
+        );
     }
     if text.contains("default import") || text.contains("default export") {
-        push(out, si, Axis::ImportStyle, AxisValue::DefaultImport, pol, cond, 0.92);
+        push(
+            out,
+            si,
+            Axis::ImportStyle,
+            AxisValue::DefaultImport,
+            pol,
+            cond,
+            0.92,
+        );
     }
     if text.contains("namespace import") || text.contains("import * as") {
-        push(out, si, Axis::ImportStyle, AxisValue::NamespaceImport, pol, cond, 0.93);
+        push(
+            out,
+            si,
+            Axis::ImportStyle,
+            AxisValue::NamespaceImport,
+            pol,
+            cond,
+            0.93,
+        );
     }
 }
 
@@ -428,14 +650,42 @@ fn extract_comment_density(
     si: usize,
     out: &mut Vec<Assertion>,
 ) {
-    if !text.contains("comment") && !text.contains("docstring") && !text.contains("doc string") && !text.contains("documentation") {
+    if !text.contains("comment")
+        && !text.contains("docstring")
+        && !text.contains("doc string")
+        && !text.contains("documentation")
+    {
         return;
     }
-    if text.contains("heavy") || text.contains("verbose") || text.contains("extensive") || text.contains("thorough") {
-        push(out, si, Axis::CommentDensity, AxisValue::Heavy, pol, cond, 0.88);
+    if text.contains("heavy")
+        || text.contains("verbose")
+        || text.contains("extensive")
+        || text.contains("thorough")
+    {
+        push(
+            out,
+            si,
+            Axis::CommentDensity,
+            AxisValue::Heavy,
+            pol,
+            cond,
+            0.88,
+        );
     }
-    if text.contains("minimal") || text.contains("sparse") || text.contains("only when") || text.contains("self-document") {
-        push(out, si, Axis::CommentDensity, AxisValue::Minimal, pol, cond, 0.88);
+    if text.contains("minimal")
+        || text.contains("sparse")
+        || text.contains("only when")
+        || text.contains("self-document")
+    {
+        push(
+            out,
+            si,
+            Axis::CommentDensity,
+            AxisValue::Minimal,
+            pol,
+            cond,
+            0.88,
+        );
     }
 }
 
@@ -460,7 +710,10 @@ mod tests {
     #[test]
     fn camel_case_prefer() {
         let a = ext("Use camelCase for variables.");
-        assert!(a.iter().any(|x| matches!(x.value, AxisValue::CamelCase) && x.polarity == Polarity::Prefer));
+        assert!(
+            a.iter()
+                .any(|x| matches!(x.value, AxisValue::CamelCase) && x.polarity == Polarity::Prefer)
+        );
     }
 
     #[test]
@@ -472,15 +725,24 @@ mod tests {
     #[test]
     fn negation_flips_polarity() {
         let a = ext("Don't use camelCase.");
-        let camel = a.iter().find(|x| matches!(x.value, AxisValue::CamelCase)).expect("camel found");
+        let camel = a
+            .iter()
+            .find(|x| matches!(x.value, AxisValue::CamelCase))
+            .expect("camel found");
         assert_eq!(camel.polarity, Polarity::Forbid);
     }
 
     #[test]
     fn dont_x_prefer_y_yields_two_clauses_no_self_clash() {
         let a = ext("Don't use camelCase, prefer snake_case.");
-        let camel = a.iter().find(|x| matches!(x.value, AxisValue::CamelCase)).unwrap();
-        let snake = a.iter().find(|x| matches!(x.value, AxisValue::SnakeCase)).unwrap();
+        let camel = a
+            .iter()
+            .find(|x| matches!(x.value, AxisValue::CamelCase))
+            .unwrap();
+        let snake = a
+            .iter()
+            .find(|x| matches!(x.value, AxisValue::SnakeCase))
+            .unwrap();
         assert_eq!(camel.polarity, Polarity::Forbid);
         assert_eq!(snake.polarity, Polarity::Prefer);
     }
@@ -495,7 +757,10 @@ mod tests {
         let pnpm = a.iter().find(|x| matches!(x.value, AxisValue::Pnpm));
         assert!(pnpm.is_some(), "pnpm assertion should be extracted");
         // condition should be detected
-        assert!(pnpm.unwrap().condition.is_some(), "condition should be captured");
+        assert!(
+            pnpm.unwrap().condition.is_some(),
+            "condition should be captured"
+        );
     }
 
     #[test]

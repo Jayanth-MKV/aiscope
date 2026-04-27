@@ -66,7 +66,11 @@ fn main() -> Result<ExitCode> {
 
     let cli = Cli::parse();
     let pipeline = cmd::PipelineOptions {
-        mode: if cli.specific { ReasonMode::Specific } else { ReasonMode::Uniform },
+        mode: if cli.specific {
+            ReasonMode::Specific
+        } else {
+            ReasonMode::Uniform
+        },
         include_user: cli.user,
     };
 

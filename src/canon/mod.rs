@@ -57,11 +57,7 @@ pub fn canonicalize(text: &str) -> CanonicalText {
     let mut canon = String::with_capacity(folded.len());
     let mut prev_space = true;
     for c in folded.chars() {
-        let keep = c.is_alphanumeric()
-            || c == '_'
-            || c == '-'
-            || c == '\''
-            || c == '`';
+        let keep = c.is_alphanumeric() || c == '_' || c == '-' || c == '\'' || c == '`';
         if keep {
             canon.push(c);
             prev_space = false;

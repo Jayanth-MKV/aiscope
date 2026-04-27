@@ -20,7 +20,9 @@ pub fn run(path: &Path, opts: &ScanOptions) -> Result<()> {
 
     if let Some(pat) = &opts.grep {
         let needle = pat.to_lowercase();
-        bundle.rules.retain(|r| r.text.to_lowercase().contains(&needle));
+        bundle
+            .rules
+            .retain(|r| r.text.to_lowercase().contains(&needle));
     }
 
     if opts.json {

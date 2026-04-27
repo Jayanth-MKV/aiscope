@@ -35,7 +35,9 @@ impl Diagnostic for AiscopeDiagnostic {
         Some(self.severity)
     }
     fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
-        self.help.as_ref().map(|h| Box::new(h.clone()) as Box<dyn fmt::Display>)
+        self.help
+            .as_ref()
+            .map(|h| Box::new(h.clone()) as Box<dyn fmt::Display>)
     }
     fn source_code(&self) -> Option<&dyn miette::SourceCode> {
         Some(&*self.src)
@@ -121,8 +123,16 @@ fn build_diagnostic(
         .and_then(|x| x.clone())
         .unwrap_or_else(|| Arc::new(NamedSource::new("?", String::new())));
 
-    let l_label = bundle.sources.get(l_src_idx).map(|s| s.label.as_str()).unwrap_or("?");
-    let r_label = bundle.sources.get(r_src_idx).map(|s| s.label.as_str()).unwrap_or("?");
+    let l_label = bundle
+        .sources
+        .get(l_src_idx)
+        .map(|s| s.label.as_str())
+        .unwrap_or("?");
+    let r_label = bundle
+        .sources
+        .get(r_src_idx)
+        .map(|s| s.label.as_str())
+        .unwrap_or("?");
 
     let l_span_start = l_stmt.byte_start;
     let l_span_len = l_stmt.byte_end.saturating_sub(l_stmt.byte_start).max(1);
@@ -158,7 +168,10 @@ fn build_diagnostic(
         ConflictKind::AgentToolMismatch => (
             "aiscope::agent_tool",
             format!("agent tool mismatch: {}", conf.note),
-            Some("add the tool to the agent's `tools:` allowlist, or change the instruction".to_string()),
+            Some(
+                "add the tool to the agent's `tools:` allowlist, or change the instruction"
+                    .to_string(),
+            ),
         ),
     };
 

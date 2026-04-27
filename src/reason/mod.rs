@@ -315,9 +315,7 @@ pub fn detect_agent_tool_mismatches(sources: &[Source], statements: &[Statement]
             continue;
         }
         // Find any statement that came from this agent file.
-        let agent_stmt = statements
-            .iter()
-            .position(|st| st.source_index == i);
+        let agent_stmt = statements.iter().position(|st| st.source_index == i);
 
         // (1) Empty allowlist.
         if s.scope.tools.is_empty() {
@@ -469,9 +467,11 @@ mod tests {
             assertions.extend(pattern::extract(i, s, &canon));
         }
         let clashes = detect_clashes(&assertions, &stmts, &srcs, ReasonMode::Uniform);
-        assert!(clashes
-            .iter()
-            .any(|c| matches!(c.kind, ConflictKind::Clash)));
+        assert!(
+            clashes
+                .iter()
+                .any(|c| matches!(c.kind, ConflictKind::Clash))
+        );
         assert!(clashes.iter().any(|c| c.severity == Severity::High));
     }
 
@@ -482,9 +482,11 @@ mod tests {
         let canon = canonicalize(&stmts[0].text);
         let assertions = pattern::extract(0, &stmts[0], &canon);
         let clashes = detect_clashes(&assertions, &stmts, &srcs, ReasonMode::Uniform);
-        assert!(clashes
-            .iter()
-            .all(|c| !matches!(c.kind, ConflictKind::Clash)));
+        assert!(
+            clashes
+                .iter()
+                .all(|c| !matches!(c.kind, ConflictKind::Clash))
+        );
     }
 
     #[test]
@@ -524,9 +526,11 @@ mod tests {
             assertions.extend(pattern::extract(i, s, &canon));
         }
         let clashes = detect_clashes(&assertions, &stmts, &srcs, ReasonMode::Uniform);
-        assert!(clashes
-            .iter()
-            .any(|c| matches!(c.kind, ConflictKind::PolarityConflict)));
+        assert!(
+            clashes
+                .iter()
+                .any(|c| matches!(c.kind, ConflictKind::PolarityConflict))
+        );
     }
 
     #[test]
@@ -569,9 +573,11 @@ mod tests {
             assertions.extend(pattern::extract(i, s, &canon));
         }
         let clashes = detect_clashes(&assertions, &stmts, &srcs, ReasonMode::Uniform);
-        assert!(clashes
-            .iter()
-            .any(|c| matches!(c.kind, ConflictKind::Clash)));
+        assert!(
+            clashes
+                .iter()
+                .any(|c| matches!(c.kind, ConflictKind::Clash))
+        );
         assert!(clashes.iter().all(|c| c.severity == Severity::Low));
     }
 

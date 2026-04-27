@@ -76,7 +76,10 @@ pub fn scan_raw(repo_root: &Path, include_user: bool) -> Vec<(Source, String)> {
             for d in subdirs {
                 let skill_md = d.path().join("SKILL.md");
                 if skill_md.is_file() {
-                    let rel = skill_md.strip_prefix(repo_root).unwrap_or(&skill_md).to_path_buf();
+                    let rel = skill_md
+                        .strip_prefix(repo_root)
+                        .unwrap_or(&skill_md)
+                        .to_path_buf();
                     let label = rel.to_string_lossy().replace('\\', "/");
                     if let Some(e) = read_file_to_source(
                         repo_root,
@@ -126,6 +129,9 @@ mod tests {
         let src = include_str!("claude.rs");
         // 'projects' may appear in this assertion + comments; cap is generous.
         let mentions = src.matches("projects").count();
-        assert!(mentions <= 10, "claude.rs mentions 'projects' {mentions} times — v0.1 must avoid it");
+        assert!(
+            mentions <= 10,
+            "claude.rs mentions 'projects' {mentions} times — v0.1 must avoid it"
+        );
     }
 }

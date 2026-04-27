@@ -2,17 +2,15 @@ name: docs
 
 on:
     push:
-        branches: [ main ]
+        branches: [main]
         paths:
             - "docs/**"
             - "CHANGELOG.md"
             - ".github/workflows/docs.yml"
     workflow_dispatch:
 
-permissions:
-    contents: read
-    pages: write
-    id-token: write
+# Read-only by default; jobs opt into more.
+permissions: read-all
 
 concurrency:
     group: pages
@@ -20,12 +18,18 @@ concurrency:
 
 jobs:
     build:
+        name: build mdBook
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
         steps:
-            - uses: actions/checkout@v4
+            - name: Checkout
+              uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+              with:
+                  persist-credentials: false
 
             - name: Install mdBook
-              uses: peaceiris/actions-mdbook@v2
+              uses: peaceiris/actions-mdbook@948b432f0fddb61de0806565a7222b36e12e2ee3 # v2.0.0
               with:
                   mdbook-version: "0.4.40"
 
@@ -33,20 +37,24 @@ jobs:
               run: mdbook build docs
 
             - name: Setup Pages
-              uses: actions/configure-pages@v5
+              uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
             - name: Upload artifact
-              uses: actions/upload-pages-artifact@v3
+              uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
               with:
                   path: docs/book
 
     deploy:
+        name: deploy to GitHub Pages
         needs: build
         runs-on: ubuntu-latest
+        permissions:
+            pages: write
+            id-token: write
         environment:
             name: github-pages
             url: ${{ steps.deployment.outputs.page_url }}
         steps:
             - name: Deploy to GitHub Pages
               id: deployment
-              uses: actions/deploy-pages@v4
+              uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
